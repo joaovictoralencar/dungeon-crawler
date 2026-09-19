@@ -1,0 +1,22 @@
+{
+  "name": "HelloDev.Analytics.Unity",
+  "rootNamespace": "HelloDev.Analytics",
+  "references": [
+    "HelloDev.Analytics",
+    "HelloDev.Analytics.Interfaces",
+    "HelloDev.Analytics.Data",
+    "HelloDev.Utils",
+    "UniTask",
+    "Unity.Services.Analytics",
+    "Unity.Services.Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

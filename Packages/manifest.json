@@ -1,13 +1,16 @@
 {
   "dependencies": {
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
-    "com.hellodev.analytics": "https://github.com/joaovictoralencar/hellodev-analytics.git",
+    "com.hellodev.analytics": "https://github.com/joaovictoralencar/hellodev-analytics.git#v0.3.3",
     "com.hellodev.utils": "https://github.com/joaovictoralencar/hellodev-utils.git",
     "com.unity.ai.navigation": "2.0.14",
+    "com.unity.cinemachine": "6.6.0",
     "com.unity.collab-proxy": "2.13.6",
+    "com.unity.editorcoroutines": "6.6.0",
     "com.unity.ide.rider": "3.0.38",
     "com.unity.ide.visualstudio": "2.0.26",
     "com.unity.inputsystem": "1.20.0",
+    "com.unity.nuget.newtonsoft-json": "3.2.2",
     "com.unity.render-pipelines.universal": "17.6.0",
     "com.unity.test-framework": "1.8.0",
     "com.unity.timeline": "6.6.0",
