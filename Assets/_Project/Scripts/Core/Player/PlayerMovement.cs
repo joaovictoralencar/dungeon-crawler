@@ -12,6 +12,7 @@ namespace DungeonCrawler
 
         [Header("Dodge")] [SerializeField] private float dodgeDistance = 3f;
         [SerializeField] private float dodgeDuration = 0.25f;
+        [SerializeField] GameObject dodgeEffect;
 
         [Header("Input")] [SerializeField] private PlayerInputController playerInputController;
 
@@ -71,7 +72,11 @@ namespace DungeonCrawler
 
             _isDodging = true;
             _dodgeTimer = 0f;
-
+            
+            dodgeEffect.SetActive(true);
+            dodgeEffect.transform.parent = null;
+            dodgeEffect.transform.position = transform.position + new Vector3(0, 0.5f, 1);
+            dodgeEffect.transform.forward = transform.forward;
             Dodged.Invoke();
         }
 
@@ -118,6 +123,7 @@ namespace DungeonCrawler
                 _isDodging = false;
                 _dodgeTimer = 0f;
                 DodgeEnded.Invoke();
+                dodgeEffect.SetActive(false);
             }
         }
 

@@ -7,6 +7,9 @@ namespace DungeonCrawler
     {
         [SerializeField] private PlayerInputController playerInputController;
         [SerializeField] private PlayerMovement playerMovement;
+        
+        [Header("VFX")]
+        [SerializeField] private GameObject swordTrailEffect;
 
         [Header("Combo")]
         [Tooltip("Duration in seconds of each hit. One entry per animation (3 entries = 3-hit combo).")]
@@ -103,6 +106,7 @@ namespace DungeonCrawler
             _nextStepQueued = false;
             playerMovement.CanWalk = false;
 
+            swordTrailEffect.gameObject.SetActive(true);
             Attacked.Invoke(step);
         }
 
@@ -114,6 +118,7 @@ namespace DungeonCrawler
             _nextStepQueued = false;
             playerMovement.CanWalk = true;
 
+            swordTrailEffect.gameObject.SetActive(false);
             AttackEnded.Invoke();
         }
     }
