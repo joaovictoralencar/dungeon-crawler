@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8159019179012845889}
+  - component: {fileID: 9153602219438244979}
   m_Layer: 0
   m_Name: FLOOR
   m_TagString: Untagged
@@ -131,6 +132,38 @@ Transform:
   - {fileID: 3704764781846724166}
   m_Father: {fileID: 1376505672074315005}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9153602219438244979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 440065094442134686}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshSurface
+  m_SerializedVersion: 0
+  m_AgentTypeID: 0
+  m_CollectObjects: 2
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 2, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_UseGeometry: 0
+  m_DefaultArea: 0
+  m_GenerateLinks: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 0
+  m_TileSize: 256
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 0.16666667
+  m_MinRegionArea: 2
+  m_NavMeshData: {fileID: 23800000, guid: f6cb4cea0ab6f564293fb44e702bed76, type: 2}
+  m_BuildHeightMesh: 0
 --- !u!1 &760185362681983911
 GameObject:
   m_ObjectHideFlags: 0
@@ -376,20 +409,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DungeonCrawler.DungeonRoom
   Doors:
-  - Door: {fileID: 379569415277656880}
+  - Direction: 0
+    Door: {fileID: 379569415277656880}
     Wall: {fileID: 5742513449267151260}
-    Direction: 0
-  - Door: {fileID: 3462503948640851843}
+  - Direction: 1
+    Door: {fileID: 3462503948640851843}
     Wall: {fileID: 3304136252900161232}
-    Direction: 1
-  - Door: {fileID: 1218057254208739503}
+  - Direction: 2
+    Door: {fileID: 1218057254208739503}
     Wall: {fileID: 5451865408355157007}
-    Direction: 2
-  - Door: {fileID: 7256839470415049751}
+  - Direction: 3
+    Door: {fileID: 7256839470415049751}
     Wall: {fileID: 1898900556780832143}
-    Direction: 3
   Width: 40
   Depth: 40
+  _navMeshSurface: {fileID: 9153602219438244979}
 --- !u!1 &6969759384494813791
 GameObject:
   m_ObjectHideFlags: 0

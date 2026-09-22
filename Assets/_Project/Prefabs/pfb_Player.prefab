@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 8547825920639005884}
   - component: {fileID: 6056393502028611718}
   - component: {fileID: 8649472702001856293}
+  - component: {fileID: 8408338721490805394}
   m_Layer: 3
   m_Name: pfb_Player
   m_TagString: Untagged
@@ -173,12 +174,31 @@ MonoBehaviour:
   playerInputController: {fileID: 8547825920639005884}
   playerMovement: {fileID: 777261727557645395}
   swordTrailEffect: {fileID: 2616786319873114459}
+  attackOrigin: {fileID: 0}
+  attackRadius: 1.5
+  damage: 1
+  damageMask:
+    serializedVersion: 2
+    m_Bits: 0
   stepDurations:
   - 0.6
   - 0.6
   - 1.2
   comboWindowStart: 0.5
   CanAttack: 1
+--- !u!114 &8408338721490805394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464479210501921818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dcd20260f45a6b4fb7619e73bad158b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DungeonCrawler.Player.PlayerHealth
+  maxHealth: 10
 --- !u!1 &3907326895746699521
 GameObject:
   m_ObjectHideFlags: 0

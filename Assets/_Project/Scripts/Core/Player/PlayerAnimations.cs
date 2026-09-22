@@ -1,4 +1,5 @@
 using UnityEngine;
+using DungeonCrawler.Player;
 
 namespace DungeonCrawler
 {
@@ -8,20 +9,32 @@ namespace DungeonCrawler
         private static readonly int AttackHash = Animator.StringToHash("Attack");
         private static readonly int AttackIndexHash = Animator.StringToHash("AttackIndex");
         private static readonly int DodgeHash = Animator.StringToHash("Dodge");
+        private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
 
         [SerializeField] private Animator animator;
         [SerializeField] private PlayerInputController playerInputController;
         [SerializeField] private PlayerMovement playerMovement;
         [SerializeField] private PlayerAttack playerAttack;
+        [SerializeField] private PlayerHealth playerHealth;
         [SerializeField] private float speedDampTime = 0.1f;
 
         private float _targetSpeed;
 
+        private void Awake()
+        {
+            if (playerHealth == null)
+                playerHealth = GetComponent<PlayerHealth>();
+        }
+
         private void OnEnable()
         {
+            if (playerHealth == null)
+                playerHealth = GetComponent<PlayerHealth>();
+
             playerInputController.InputMoved.AddListener(OnInputMoved);
             playerAttack.Attacked.AddListener(OnAttacked);
             playerMovement.Dodged.AddListener(OnDodged);
+            playerHealth.Died.AddListener(OnDied);
         }
 
         private void OnDisable()
@@ -29,6 +42,7 @@ namespace DungeonCrawler
             playerInputController.InputMoved.RemoveListener(OnInputMoved);
             playerAttack.Attacked.RemoveListener(OnAttacked);
             playerMovement.Dodged.RemoveListener(OnDodged);
+            playerHealth.Died.RemoveListener(OnDied);
         }
 
         private void Update()
@@ -37,6 +51,7 @@ namespace DungeonCrawler
             float speed = isWalking ? _targetSpeed : 0f;
 
             animator.SetFloat(SpeedHash, speed, speedDampTime, Time.deltaTime);
+            animator.SetBool(IsDeadHash, playerHealth.IsDead);
         }
 
         private void OnInputMoved(Vector2 input)
@@ -55,6 +70,11 @@ namespace DungeonCrawler
         {
             animator.ResetTrigger(AttackHash);
             animator.SetTrigger(DodgeHash);
+        }
+
+        private void OnDied()
+        {
+            animator.SetBool(IsDeadHash, true);
         }
     }
 }

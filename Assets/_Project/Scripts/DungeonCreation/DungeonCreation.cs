@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HelloDev.Utils;
 using UnityEngine;
 using Sirenix.OdinInspector;
+using Unity.AI.Navigation;
 
 namespace DungeonCrawler
 {
@@ -36,7 +37,6 @@ namespace DungeonCrawler
             BuildDungeonLayout();
             PlaceEndRoomAtFurthestRoom();
             ConfigureRoomConnections();
-
             Debug.Log($"<color=cyan>=== DUNGEON GENERATION COMPLETE. Total Rooms: {Rooms.Count} ===</color>");
         }
 

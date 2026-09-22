@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Unity.AI.Navigation;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace DungeonCrawler
 {
@@ -10,6 +10,7 @@ namespace DungeonCrawler
         [SerializeField] private DungeonDoor[] Doors;
         [SerializeField] private float Width;
         [SerializeField] private float Depth;
+        [SerializeField] private NavMeshSurface _navMeshSurface;
 
         public Vector2Int Position { get; private set; }
         private Dictionary<Directions, DungeonRoom> NeighborsByDirection = new();
@@ -48,6 +49,7 @@ namespace DungeonCrawler
                     doorData.Wall.SetActive(!hasNeighbor);
                 }
             }
+            _navMeshSurface.BuildNavMesh();
         }
     }
 

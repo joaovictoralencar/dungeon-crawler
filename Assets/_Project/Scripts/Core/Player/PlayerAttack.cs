@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
+using System.Collections.Generic;
+using DungeonCrawler.Core.Combat;
 
 namespace DungeonCrawler
 {
@@ -10,6 +12,15 @@ namespace DungeonCrawler
         
         [Header("VFX")]
         [SerializeField] private GameObject swordTrailEffect;
+
+        [Header("Damage")]
+        [SerializeField] private Transform attackOrigin;
+        [SerializeField, Min(0f)] private float attackRadius = 1.5f;
+        [SerializeField, Min(0f)] private float damage = 1f;
+        [SerializeField] private LayerMask damageMask;
+        [SerializeField, Min(0f)] private float knockbackForce = 4f;
+        [SerializeField, Min(0f)] private float knockbackDuration = 0.15f;
+        [SerializeField] private bool debugCombat;
 
         [Header("Combo")]
         [Tooltip("Duration in seconds of each hit. One entry per animation (3 entries = 3-hit combo).")]
@@ -107,7 +118,55 @@ namespace DungeonCrawler
             playerMovement.CanWalk = false;
 
             swordTrailEffect.gameObject.SetActive(true);
+            DealDamage();
             Attacked.Invoke(step);
+        }
+
+        private void DealDamage()
+        {
+            Vector3 origin = attackOrigin != null ? attackOrigin.position : transform.position;
+            int effectiveDamageMask = damageMask.value == 0 ? Physics.AllLayers : damageMask.value;
+            Collider[] hits = Physics.OverlapSphere(origin, attackRadius, effectiveDamageMask);
+            HashSet<IDamageable> damagedTargets = new();
+
+            if (debugCombat)
+            {
+                if (damageMask.value == 0)
+                    Debug.LogWarning($"[{name}] Damage Mask is not configured; using all layers.", this);
+
+                Debug.Log($"[{name}] Attack hit scan: Origin={origin}, Radius={attackRadius}, " +
+                          $"Mask={effectiveDamageMask}, Colliders={hits.Length}.", this);
+            }
+
+            foreach (Collider hit in hits)
+            {
+                if (hit.transform.IsChildOf(transform))
+                    continue;
+
+                IDamageable damageable = hit.GetComponentInParent<IDamageable>();
+                if (damageable == null || !damagedTargets.Add(damageable))
+                {
+                    if (debugCombat)
+                        Debug.Log($"[{name}] Hit {hit.name}, but no new IDamageable was found.", hit);
+                    continue;
+                }
+
+                damageable.TakeDamage(damage);
+
+                IKnockbackable knockbackable = hit.GetComponentInParent<IKnockbackable>();
+                if (knockbackable != null)
+                {
+                    Vector3 direction = hit.transform.position - transform.position;
+                    knockbackable.ApplyKnockback(direction, knockbackForce, knockbackDuration);
+                }
+            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = Color.yellow;
+            Vector3 origin = attackOrigin != null ? attackOrigin.position : transform.position;
+            Gizmos.DrawWireSphere(origin, attackRadius);
         }
 
         private void EndAttack()
