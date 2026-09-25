@@ -1,14 +1,14 @@
-using System;
 using UnityEngine;
 using UnityEngine.AI;
 using DungeonCrawler.Core.Combat;
+using System;
 
 namespace DungeonCrawler.Core.Enemies
 {
     [RequireComponent(typeof(NavMeshAgent))]
     [RequireComponent(typeof(CapsuleCollider))]
     [RequireComponent(typeof(EnemyHealth))]
-    [RequireComponent(typeof(EnemyAnimations))]
+    [RequireComponent(typeof(EnemyDeathHandler))]
     public abstract class EnemyBase : MonoBehaviour, IKnockbackable
     {
         [SerializeField] private EnemyConfig config;
@@ -35,6 +35,7 @@ namespace DungeonCrawler.Core.Enemies
 
         public event Action AttackStarted;
         public event Action AttackFinished;
+        public event Action AttackCancelled;
 
         private EnemyStateMachine _stateMachine;
         private float _attackTimer;
@@ -66,7 +67,8 @@ namespace DungeonCrawler.Core.Enemies
         {
             if (target == null)
             {
-                DungeonCrawler.Player.Player player = FindAnyObjectByType<DungeonCrawler.Player.Player>();
+                DungeonCrawler.Core.Player.Player player =
+                    FindAnyObjectByType<DungeonCrawler.Core.Player.Player>();
                 target = player != null ? player.transform : null;
             }
 
@@ -241,7 +243,7 @@ namespace DungeonCrawler.Core.Enemies
             EndAttackHitbox();
             IsAttacking = false;
             _attackHitExecuted = false;
-            AttackFinished?.Invoke();
+            AttackCancelled?.Invoke();
         }
 
         protected virtual void EndAttackHitbox() { }

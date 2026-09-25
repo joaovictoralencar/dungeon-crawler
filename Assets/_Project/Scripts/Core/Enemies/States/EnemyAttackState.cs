@@ -11,7 +11,7 @@ namespace DungeonCrawler.Core.Enemies
         {
             _anticipationTimer = _enemy.AttackAnticipation;
             _enemy.AttackFinished += OnAttackFinished;
-            _enemy.Health.Damaged.AddListener(OnDamaged);
+            _enemy.Health.Damaged += OnDamaged;
             _enemy.StopMoving();
         }
 
@@ -43,7 +43,7 @@ namespace DungeonCrawler.Core.Enemies
         public void Exit()
         {
             _enemy.AttackFinished -= OnAttackFinished;
-            _enemy.Health.Damaged.RemoveListener(OnDamaged);
+            _enemy.Health.Damaged -= OnDamaged;
             _enemy.StopMoving();
         }
 

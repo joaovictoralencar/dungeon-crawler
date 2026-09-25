@@ -1,23 +1,25 @@
 using UnityEngine;
 using DungeonCrawler.Core.Combat;
 
-namespace DungeonCrawler.Player
+namespace DungeonCrawler.Core.Player
 {
     public sealed class PlayerHealth : Health
     {
         private PlayerMovement _movement;
-        private PlayerAttack _attack;
 
         public bool IsInvulnerable { get; private set; }
 
-        private void OnEnable()
+        private void Awake()
         {
             _movement = GetComponent<PlayerMovement>();
-            _attack = GetComponent<PlayerAttack>();
+        }
+
+        private void OnEnable()
+        {
             if (_movement != null)
             {
-                _movement.Dodged.AddListener(OnDodgeStarted);
-                _movement.DodgeEnded.AddListener(OnDodgeEnded);
+                _movement.DodgeStarted += OnDodgeStarted;
+                _movement.DodgeFinished += OnDodgeEnded;
             }
         }
 
@@ -25,8 +27,8 @@ namespace DungeonCrawler.Player
         {
             if (_movement != null)
             {
-                _movement.Dodged.RemoveListener(OnDodgeStarted);
-                _movement.DodgeEnded.RemoveListener(OnDodgeEnded);
+                _movement.DodgeStarted -= OnDodgeStarted;
+                _movement.DodgeFinished -= OnDodgeEnded;
             }
         }
 
@@ -39,7 +41,6 @@ namespace DungeonCrawler.Player
                 return;
             }
 
-            _attack?.CancelAttack();
             base.TakeDamage(damage);
         }
 
@@ -60,14 +61,6 @@ namespace DungeonCrawler.Player
         protected override void Die()
         {
             base.Die();
-
-            PlayerMovement movement = GetComponent<PlayerMovement>();
-            if (movement != null)
-                movement.enabled = false;
-
-            PlayerAttack attack = GetComponent<PlayerAttack>();
-            if (attack != null)
-                attack.enabled = false;
         }
     }
 }

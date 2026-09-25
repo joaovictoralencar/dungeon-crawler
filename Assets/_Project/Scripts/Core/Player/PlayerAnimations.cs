@@ -1,8 +1,7 @@
 using System.Collections;
 using UnityEngine;
-using DungeonCrawler.Player;
 
-namespace DungeonCrawler
+namespace DungeonCrawler.Core.Player
 {
     public class PlayerAnimations : MonoBehaviour
     {
@@ -12,11 +11,11 @@ namespace DungeonCrawler
         private static readonly int DodgeHash = Animator.StringToHash("Dodge");
         private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
 
-        [SerializeField] private Animator animator;
-        [SerializeField] private PlayerInputController playerInputController;
-        [SerializeField] private PlayerMovement playerMovement;
-        [SerializeField] private PlayerAttack playerAttack;
-        [SerializeField] private PlayerHealth playerHealth;
+        private Animator _animator;
+        private PlayerMovement _playerMovement;
+        private PlayerAttack _playerAttack;
+        private PlayerHealth _playerHealth;
+        private bool _isDead;
         [SerializeField] private float speedDampTime = 0.1f;
         [SerializeField, Min(0f)] private float hitBlinkDuration = 0.5f;
         [SerializeField, Min(0.01f)] private float hitBlinkInterval = 0.08f;
@@ -27,31 +26,29 @@ namespace DungeonCrawler
 
         private void Awake()
         {
-            if (playerHealth == null)
-                playerHealth = GetComponent<PlayerHealth>();
-
+            _animator = GetComponentInChildren<Animator>();
+            _playerMovement = GetComponent<PlayerMovement>();
+            _playerAttack = GetComponent<PlayerAttack>();
+            _playerHealth = GetComponent<PlayerHealth>();
             _renderers = GetComponentsInChildren<Renderer>(true);
         }
 
         private void OnEnable()
         {
-            if (playerHealth == null)
-                playerHealth = GetComponent<PlayerHealth>();
-
-            playerInputController.InputMoved.AddListener(OnInputMoved);
-            playerAttack.Attacked.AddListener(OnAttacked);
-            playerMovement.Dodged.AddListener(OnDodged);
-            playerHealth.Damaged.AddListener(OnDamaged);
-            playerHealth.Died.AddListener(OnDied);
+            _playerMovement.MovementSpeedChanged += OnMovementSpeedChanged;
+            _playerAttack.AttackStarted += OnAttacked;
+            _playerMovement.DodgeStarted += OnDodged;
+            _playerHealth.Damaged += OnDamaged;
+            _playerHealth.Died += OnDied;
         }
 
         private void OnDisable()
         {
-            playerInputController.InputMoved.RemoveListener(OnInputMoved);
-            playerAttack.Attacked.RemoveListener(OnAttacked);
-            playerMovement.Dodged.RemoveListener(OnDodged);
-            playerHealth.Damaged.RemoveListener(OnDamaged);
-            playerHealth.Died.RemoveListener(OnDied);
+            _playerMovement.MovementSpeedChanged -= OnMovementSpeedChanged;
+            _playerAttack.AttackStarted -= OnAttacked;
+            _playerMovement.DodgeStarted -= OnDodged;
+            _playerHealth.Damaged -= OnDamaged;
+            _playerHealth.Died -= OnDied;
 
             if (_hitBlinkRoutine != null)
             {
@@ -63,42 +60,40 @@ namespace DungeonCrawler
 
         private void Update()
         {
-            bool isWalking = playerMovement.CanMove && playerMovement.CanWalk;
-            float speed = isWalking ? _targetSpeed : 0f;
-
-            animator.SetFloat(SpeedHash, speed, speedDampTime, Time.deltaTime);
-            animator.SetBool(IsDeadHash, playerHealth.IsDead);
+            _animator.SetFloat(SpeedHash, _targetSpeed, speedDampTime, Time.deltaTime);
+            _animator.SetBool(IsDeadHash, _isDead);
         }
 
-        private void OnInputMoved(Vector2 input)
+        private void OnMovementSpeedChanged(float speed)
         {
-            _targetSpeed = Mathf.Clamp01(input.magnitude);
+            _targetSpeed = speed;
         }
 
         private void OnAttacked(int step)
         {
             // Set the index BEFORE the trigger so the transition sees the right value.
-            animator.SetInteger(AttackIndexHash, step);
-            animator.SetTrigger(AttackHash);
+            _animator.SetInteger(AttackIndexHash, step);
+            _animator.SetTrigger(AttackHash);
         }
 
         private void OnDodged()
         {
-            animator.ResetTrigger(AttackHash);
-            animator.SetTrigger(DodgeHash);
+            _animator.ResetTrigger(AttackHash);
+            _animator.SetTrigger(DodgeHash);
         }
 
         private void OnDied()
         {
-            animator.SetBool(IsDeadHash, true);
+            _isDead = true;
+            _animator.SetBool(IsDeadHash, true);
         }
 
         private void OnDamaged(float damage)
         {
-            if (playerHealth.IsDead)
+            if (_playerHealth.IsDead)
                 return;
 
-            animator.ResetTrigger(AttackHash);
+            _animator.ResetTrigger(AttackHash);
 
             if (_hitBlinkRoutine != null)
                 StopCoroutine(_hitBlinkRoutine);

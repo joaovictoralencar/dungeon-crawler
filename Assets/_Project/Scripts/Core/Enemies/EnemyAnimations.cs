@@ -1,5 +1,4 @@
 using UnityEngine;
-using DungeonCrawler.Core.Combat;
 
 namespace DungeonCrawler.Core.Enemies
 {
@@ -12,7 +11,7 @@ namespace DungeonCrawler.Core.Enemies
         private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
         private static readonly int HitShaderPropertyId = Shader.PropertyToID("_Hit");
 
-        [SerializeField] private Animator animator;
+        private Animator _animator;
         [SerializeField] private float speedDampTime = 0.1f;
         [SerializeField, Min(0f)] private float hitFlashDuration = .5f;
 
@@ -26,6 +25,7 @@ namespace DungeonCrawler.Core.Enemies
         {
             _enemy = GetComponent<EnemyBase>();
             _health = GetComponent<EnemyHealth>();
+            _animator = GetComponentInChildren<Animator>();
             _renderers = GetComponentsInChildren<Renderer>(true);
             _propertyBlocks = new MaterialPropertyBlock[_renderers.Length];
 
@@ -43,8 +43,8 @@ namespace DungeonCrawler.Core.Enemies
 
             if (_health != null)
             {
-                _health.Damaged.AddListener(OnDamaged);
-                _health.Died.AddListener(OnDied);
+                _health.Damaged += OnDamaged;
+                _health.Died += OnDied;
             }
         }
 
@@ -58,8 +58,8 @@ namespace DungeonCrawler.Core.Enemies
 
             if (_health != null)
             {
-                _health.Damaged.RemoveListener(OnDamaged);
-                _health.Died.RemoveListener(OnDied);
+                _health.Damaged -= OnDamaged;
+                _health.Died -= OnDied;
             }
         }
 
@@ -67,25 +67,25 @@ namespace DungeonCrawler.Core.Enemies
         {
             UpdateHitFlash();
 
-            if (animator == null || _enemy == null)
+            if (_animator == null || _enemy == null)
                 return;
 
-            animator.SetFloat(SpeedHash, _enemy.MovementSpeed01, speedDampTime, Time.deltaTime);
-            animator.SetBool(IsDeadHash, _health != null && _health.IsDead);
+            _animator.SetFloat(SpeedHash, _enemy.MovementSpeed01, speedDampTime, Time.deltaTime);
+            _animator.SetBool(IsDeadHash, _health != null && _health.IsDead);
         }
 
         private void OnAttackStarted()
         {
-            if (animator == null)
+            if (_animator == null)
                 return;
 
-            animator.SetTrigger(AttackHash);
+            _animator.SetTrigger(AttackHash);
         }
 
         private void OnAttackFinished()
         {
-            if (animator != null)
-                animator.ResetTrigger(AttackHash);
+            if (_animator != null)
+                _animator.ResetTrigger(AttackHash);
         }
 
         private void OnDamaged(float damage)
@@ -93,14 +93,13 @@ namespace DungeonCrawler.Core.Enemies
             if (_health.IsDead)
                 return;
 
-            _enemy?.CancelAttack();
             _hitFlashTimer = hitFlashDuration;
             SetHitShaderValue(true);
 
-            if (animator != null)
+            if (_animator != null)
             {
-                animator.ResetTrigger(AttackHash);
-                animator.SetTrigger(HitHash);
+                _animator.ResetTrigger(AttackHash);
+                _animator.SetTrigger(HitHash);
             }
         }
 
@@ -139,11 +138,11 @@ namespace DungeonCrawler.Core.Enemies
 
         private void OnDied()
         {
-            if (animator == null)
+            if (_animator == null)
                 return;
 
-            animator.SetBool(IsDeadHash, true);
-            animator.SetTrigger(DeathHash);
+            _animator.SetBool(IsDeadHash, true);
+            _animator.SetTrigger(DeathHash);
         }
     }
 }

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace DungeonCrawler.Player
+namespace DungeonCrawler.Core.Player
 {
     [RequireComponent(typeof(CharacterController))]
     [RequireComponent(typeof(PlayerInputController))]
@@ -8,6 +8,7 @@ namespace DungeonCrawler.Player
     [RequireComponent(typeof(PlayerAttack))]
     [RequireComponent(typeof(PlayerHealth))]
     [RequireComponent(typeof(PlayerAnimations))]
+    [RequireComponent(typeof(PlayerDeathHandler))]
     public class Player : MonoBehaviour
     {
         public float GameSpeed = 1f;

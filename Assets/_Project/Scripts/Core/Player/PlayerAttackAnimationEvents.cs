@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace DungeonCrawler
+namespace DungeonCrawler.Core.Player
 {
     public sealed class PlayerAttackAnimationEvents : MonoBehaviour
     {

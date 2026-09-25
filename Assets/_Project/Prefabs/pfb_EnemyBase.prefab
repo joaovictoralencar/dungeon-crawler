@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 6345186828527453524}
   - component: {fileID: 2535174390659262778}
   - component: {fileID: 811884759058671546}
+  - component: {fileID: 2233445566778899001}
   m_Layer: 6
   m_Name: pfb_EnemyBase
   m_TagString: Untagged
@@ -131,8 +132,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92699d9e6e62fbd4993b571dc7742476, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DungeonCrawler.Core.Enemies.EnemyAnimations
-  animator: {fileID: 0}
   speedDampTime: 0.1
+--- !u!114 &2233445566778899001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2194521327475278475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c3d4e5f60718293a4b5c6d7e8f901a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::DungeonCrawler.Core.Enemies.EnemyDeathHandler
 --- !u!54 &811884759058671546
 Rigidbody:
   m_ObjectHideFlags: 0

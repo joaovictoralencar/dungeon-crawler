@@ -1,14 +1,13 @@
+using System;
 using UnityEngine;
-using UnityEngine.Events;
 using DungeonCrawler.Core.Combat;
 
-namespace DungeonCrawler
+namespace DungeonCrawler.Core.Player
 {
     public class PlayerAttack : MonoBehaviour
     {
-        [SerializeField] private PlayerInputController playerInputController;
-        [SerializeField] private PlayerMovement playerMovement;
-        
+        private PlayerInputController _playerInputController;
+        private PlayerMovement _movement;
         [Header("VFX")]
         [SerializeField] private GameObject swordTrailEffect;
 
@@ -27,15 +26,12 @@ namespace DungeonCrawler
         [Tooltip("Fraction of a hit (0-1) after which pressing attack queues the next hit.")]
         [SerializeField, Range(0f, 1f)] private float comboWindowStart = 0.5f;
 
-        /// <summary>Fires at the start of every hit. Parameter = hit index (0, 1, 2).</summary>
-        public UnityEvent<int> Attacked { get; } = new();
-
-        /// <summary>Fires once when the whole combo is over (or cancelled) and the player regains control.</summary>
-        public UnityEvent AttackEnded { get; } = new();
-
         public bool CanAttack = true;
         public bool IsAttacking => _isAttacking;
         public int ComboStep => _comboStep;
+        public event Action<int> AttackStarted;
+        public event Action AttackFinished;
+        public event Action AttackCancelled;
 
         private bool _isAttacking;
         private int _comboStep;
@@ -43,20 +39,26 @@ namespace DungeonCrawler
         private float _stepTimer;
         private bool _nextStepQueued;
 
+        private void Awake()
+        {
+            _playerInputController = GetComponent<PlayerInputController>();
+            _movement = GetComponent<PlayerMovement>();
+        }
+
         private void OnEnable()
         {
-            playerInputController.InputAttacked.AddListener(OnInputAttacked);
-            playerMovement.Dodged.AddListener(OnDodged);
+            _playerInputController.AttackRequested += OnInputAttacked;
+            _movement.DodgeStarted += OnDodged;
         }
 
         private void OnDisable()
         {
-            playerInputController.InputAttacked.RemoveListener(OnInputAttacked);
-            playerMovement.Dodged.RemoveListener(OnDodged);
+            _playerInputController.AttackRequested -= OnInputAttacked;
+            _movement.DodgeStarted -= OnDodged;
 
             // Never leave the player stuck if this component is disabled mid-combo.
             if (_isAttacking)
-                EndAttack();
+                EndAttack(true);
         }
 
         private void Update()
@@ -69,7 +71,7 @@ namespace DungeonCrawler
 
         private void OnInputAttacked()
         {
-            if (!CanAttack || !playerMovement.CanMove || playerMovement.IsDodging)
+            if (!CanAttack || !_movement.CanMove || _movement.IsDodging)
                 return;
 
             if (stepDurations == null || stepDurations.Length == 0)
@@ -95,7 +97,7 @@ namespace DungeonCrawler
         {
             // Dodge interrupts the combo and resets it.
             if (_isAttacking)
-                EndAttack();
+                EndAttack(true);
         }
 
         private void StartStep(int step)
@@ -105,10 +107,10 @@ namespace DungeonCrawler
             _stepDuration = Mathf.Max(0.01f, stepDurations[step]);
             _stepTimer = 0f;
             _nextStepQueued = false;
-            playerMovement.CanWalk = false;
+            _movement.LockWalking();
 
             attackHitbox?.Configure(transform, damage, damageMask, knockbackForce, knockbackDuration);
-            Attacked.Invoke(step);
+            AttackStarted?.Invoke(step);
         }
 
         public void EnableAttackHitbox()
@@ -130,27 +132,30 @@ namespace DungeonCrawler
             if (_nextStepQueued && _comboStep < stepDurations.Length - 1)
                 StartStep(_comboStep + 1);
             else
-                EndAttack();
+                EndAttack(false);
         }
 
         public void CancelAttack()
         {
-            if (!_isAttacking && playerMovement.CanWalk)
+            if (!_isAttacking && _movement.CanWalk)
                 return;
 
-            EndAttack();
+            EndAttack(true);
         }
 
-        private void EndAttack()
+        private void EndAttack(bool cancelled)
         {
             _isAttacking = false;
             _comboStep = 0;
             _stepTimer = 0f;
             _nextStepQueued = false;
-            playerMovement.CanWalk = true;
+            _movement.UnlockWalking();
 
             DisableAttackHitbox();
-            AttackEnded.Invoke();
+            if (cancelled)
+                AttackCancelled?.Invoke();
+            else
+                AttackFinished?.Invoke();
         }
     }
 }

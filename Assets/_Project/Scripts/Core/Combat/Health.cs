@@ -1,5 +1,5 @@
+using System;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace DungeonCrawler.Core.Combat
 {
@@ -13,8 +13,8 @@ namespace DungeonCrawler.Core.Combat
         public bool IsDead { get; private set; }
         protected bool DebugDamage => debugDamage;
 
-        public UnityEvent<float> Damaged { get; } = new();
-        public UnityEvent Died { get; } = new();
+        public event Action<float> Damaged;
+        public event Action Died;
 
         protected virtual void Awake()
         {
@@ -34,7 +34,7 @@ namespace DungeonCrawler.Core.Combat
             CurrentHealth = Mathf.Max(0f, CurrentHealth - damage);
             if (debugDamage)
                 Debug.Log($"[{name}] Took {damage} damage. Health {previousHealth} -> {CurrentHealth}.", this);
-            Damaged.Invoke(damage);
+            Damaged?.Invoke(damage);
 
             if (CurrentHealth <= 0f)
                 Die();
@@ -48,7 +48,7 @@ namespace DungeonCrawler.Core.Combat
             IsDead = true;
             if (debugDamage)
                 Debug.Log($"[{name}] Died.", this);
-            Died.Invoke();
+            Died?.Invoke();
         }
     }
 }

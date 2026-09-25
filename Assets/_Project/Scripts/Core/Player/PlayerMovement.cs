@@ -1,20 +1,18 @@
 using System;
 using UnityEngine;
-using UnityEngine.Events;
 
-namespace DungeonCrawler
+namespace DungeonCrawler.Core.Player
 {
     public class PlayerMovement : MonoBehaviour
     {
         [Header("Movement")] [SerializeField] private float InitialSpeed = 5f;
         [SerializeField] private float rotationSpeed = 10f;
-        [SerializeField] private CharacterController _characterController;
+        private CharacterController _characterController;
 
         [Header("Dodge")] [SerializeField] private float dodgeDistance = 3f;
         [SerializeField] private float dodgeDuration = 0.25f;
         [SerializeField] GameObject dodgeEffect;
-
-        [Header("Input")] [SerializeField] private PlayerInputController playerInputController;
+        private PlayerInputController _playerInputController;
 
         /// <summary>Master lock: blocks walking AND dodging.</summary>
         public bool CanMove = true;
@@ -22,25 +20,33 @@ namespace DungeonCrawler
         /// <summary>Blocks walking/rotation only. Dodging is still allowed (used while attacking).</summary>
         public bool CanWalk = true;
 
-        public UnityEvent Dodged { get; } = new();
-        public UnityEvent DodgeEnded { get; } = new();
         public bool IsDodging => _isDodging;
+        public event Action DodgeStarted;
+        public event Action DodgeFinished;
+        public event Action<float> MovementSpeedChanged;
 
         private Vector3 desiredMoveDirection;
         private bool _isDodging;
         private Vector3 _dodgeDirection;
         private float _dodgeTimer;
+        private float _lastMovementSpeed;
+
+        private void Awake()
+        {
+            _characterController = GetComponent<CharacterController>();
+            _playerInputController = GetComponent<PlayerInputController>();
+        }
 
         private void OnEnable()
         {
-            playerInputController.InputMoved.AddListener(OnInputMoved);
-            playerInputController.InputDodged.AddListener(OnInputDodged);
+            _playerInputController.MoveRequested += OnInputMoved;
+            _playerInputController.DodgeRequested += OnInputDodged;
         }
 
         private void OnDisable()
         {
-            playerInputController.InputMoved.RemoveListener(OnInputMoved);
-            playerInputController.InputDodged.RemoveListener(OnInputDodged);
+            _playerInputController.MoveRequested -= OnInputMoved;
+            _playerInputController.DodgeRequested -= OnInputDodged;
         }
 
         private void OnInputMoved(Vector2 direction)
@@ -77,7 +83,7 @@ namespace DungeonCrawler
             // dodgeEffect.transform.parent = null;
             // dodgeEffect.transform.position = transform.position + new Vector3(0, 0.5f, 1);
             // dodgeEffect.transform.forward = transform.forward;
-            Dodged.Invoke();
+            DodgeStarted?.Invoke();
         }
 
         public void Move(Vector3 dir)
@@ -93,6 +99,8 @@ namespace DungeonCrawler
 
         private void Update()
         {
+            UpdateMovementSpeed();
+
             if (!CanMove)
                 return;
 
@@ -109,6 +117,29 @@ namespace DungeonCrawler
             RotateToSpeed(desiredMoveDirection);
         }
 
+        public void LockWalking()
+        {
+            CanWalk = false;
+        }
+
+        public void UnlockWalking()
+        {
+            CanWalk = true;
+        }
+
+        private void UpdateMovementSpeed()
+        {
+            float speed = CanMove && CanWalk
+                ? Mathf.Clamp01(desiredMoveDirection.magnitude)
+                : 0f;
+
+            if (Mathf.Approximately(speed, _lastMovementSpeed))
+                return;
+
+            _lastMovementSpeed = speed;
+            MovementSpeedChanged?.Invoke(speed);
+        }
+
         private void UpdateDodge()
         {
             _dodgeTimer += Time.deltaTime;
@@ -122,7 +153,7 @@ namespace DungeonCrawler
             {
                 _isDodging = false;
                 _dodgeTimer = 0f;
-                DodgeEnded.Invoke();
+                DodgeFinished?.Invoke();
                 dodgeEffect.SetActive(false);
             }
         }
