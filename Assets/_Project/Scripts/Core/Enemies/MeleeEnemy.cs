@@ -11,7 +11,7 @@ namespace DungeonCrawler.Core.Enemies
         protected override void PerformAttack()
         {
             attackHitbox?.Configure(transform, Config.Damage, damageMask);
-            attackHitbox?.Activate();
+            attackHitbox?.Activate(0);
         }
 
         protected override void OnDisable()

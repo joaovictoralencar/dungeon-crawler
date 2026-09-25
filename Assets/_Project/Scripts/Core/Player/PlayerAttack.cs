@@ -8,6 +8,7 @@ namespace DungeonCrawler.Core.Player
     {
         private PlayerInputController _playerInputController;
         private PlayerMovement _movement;
+
         [Header("VFX")]
         [SerializeField] private GameObject swordTrailEffect;
 
@@ -15,29 +16,30 @@ namespace DungeonCrawler.Core.Player
         [SerializeField] private DamageHitbox attackHitbox;
         [SerializeField, Min(0f)] private float damage = 1f;
         [SerializeField] private LayerMask damageMask;
-        [SerializeField, Min(0f)] private float knockbackForce = 4f;
-        [SerializeField, Min(0f)] private float knockbackDuration = 0.15f;
-        [SerializeField] private bool debugCombat;
 
         [Header("Combo")]
-        [Tooltip("Duration in seconds of each hit. One entry per animation (3 entries = 3-hit combo).")]
-        [SerializeField] private float[] stepDurations = { 0.4f, 0.4f, 0.6f };
-
-        [Tooltip("Fraction of a hit (0-1) after which pressing attack queues the next hit.")]
-        [SerializeField, Range(0f, 1f)] private float comboWindowStart = 0.5f;
+        [SerializeField] private PlayerAttackStep[] comboSteps =
+        {
+            new PlayerAttackStep(),
+            new PlayerAttackStep(),
+            new PlayerAttackStep()
+        };
 
         public bool CanAttack = true;
         public bool IsAttacking => _isAttacking;
+        public bool IsRecovering => _isRecovering;
         public int ComboStep => _comboStep;
         public event Action<int> AttackStarted;
         public event Action AttackFinished;
         public event Action AttackCancelled;
 
         private bool _isAttacking;
+        private bool _isRecovering;
+        private bool _comboWindowOpen;
         private int _comboStep;
-        private float _stepDuration;
-        private float _stepTimer;
-        private bool _nextStepQueued;
+        private float _recoveryTimer;
+        private float _recoveryDuration;
+        private AttackInputType _bufferedInput;
 
         private void Awake()
         {
@@ -47,97 +49,165 @@ namespace DungeonCrawler.Core.Player
 
         private void OnEnable()
         {
-            _playerInputController.AttackRequested += OnInputAttacked;
+            _playerInputController.AttackRequested += OnAttackRequested;
             _movement.DodgeStarted += OnDodged;
         }
 
         private void OnDisable()
         {
-            _playerInputController.AttackRequested -= OnInputAttacked;
+            _playerInputController.AttackRequested -= OnAttackRequested;
             _movement.DodgeStarted -= OnDodged;
 
-            // Never leave the player stuck if this component is disabled mid-combo.
-            if (_isAttacking)
+            if (_isAttacking || _isRecovering)
                 EndAttack(true);
         }
 
         private void Update()
         {
-            if (!_isAttacking)
-                return;
-
-            _stepTimer += Time.deltaTime;
-        }
-
-        private void OnInputAttacked()
-        {
-            if (!CanAttack || !_movement.CanMove || _movement.IsDodging)
-                return;
-
-            if (stepDurations == null || stepDurations.Length == 0)
-                return;
-
-            // Not attacking: start a fresh combo at hit 1.
-            if (!_isAttacking)
+            if (_isRecovering)
             {
-                StartStep(0);
-                return;
+                _recoveryTimer += Time.deltaTime;
+                if (_recoveryTimer >= _recoveryDuration)
+                {
+                    _isRecovering = false;
+                    TryStartBufferedAttack();
+                }
             }
 
-            // Already attacking: queue the next hit, but only if there is one and the window is open.
-            bool hasNextStep = _comboStep < stepDurations.Length - 1;
-            float elapsed = _stepTimer;
-            bool windowOpen = elapsed >= _stepDuration * comboWindowStart;
+            // Attack-step timing is owned by animation events. This update only
+            // handles post-combo recovery.
+        }
 
-            if (hasNextStep && windowOpen)
-                _nextStepQueued = true;
+        private void OnAttackRequested(AttackInputType input)
+        {
+            if (!CanAttack || _movement.IsDodging)
+                return;
+
+            if (_isAttacking && !_comboWindowOpen)
+                return;
+
+            _bufferedInput = input;
+
+            if (!_isAttacking && !_isRecovering)
+                TryStartBufferedAttack();
+        }
+
+        private void TryStartBufferedAttack()
+        {
+            if (_bufferedInput == AttackInputType.None || !_movement.CanMove)
+                return;
+
+            AttackInputType input = _bufferedInput;
+            _bufferedInput = AttackInputType.None;
+            StartStep(0, input);
         }
 
         private void OnDodged()
         {
-            // Dodge interrupts the combo and resets it.
-            if (_isAttacking)
+            if (_isAttacking || _isRecovering)
                 EndAttack(true);
         }
 
-        private void StartStep(int step)
+        private void StartStep(int step, AttackInputType input)
         {
+            if (comboSteps == null || step < 0 || step >= comboSteps.Length)
+            {
+                EndAttack(false);
+                return;
+            }
+
+            PlayerAttackStep definition = comboSteps[step];
+            if (definition == null || definition.input != input)
+            {
+                EndAttack(false);
+                return;
+            }
+
             _isAttacking = true;
+            _isRecovering = false;
             _comboStep = step;
-            _stepDuration = Mathf.Max(0.01f, stepDurations[step]);
-            _stepTimer = 0f;
-            _nextStepQueued = false;
+            _comboWindowOpen = false;
             _movement.LockWalking();
 
-            attackHitbox?.Configure(transform, damage, damageMask, knockbackForce, knockbackDuration);
+            attackHitbox?.Configure(
+                transform,
+                damage * Mathf.Max(0f, definition.damageMultiplier),
+                damageMask,
+                definition.knockbackForce,
+                definition.knockbackDuration);
+
             AttackStarted?.Invoke(step);
+        }
+
+        public void EnableAttackHitbox(int index)
+        {
+            if (!_isAttacking)
+                return;
+
+            attackHitbox?.Activate(index);
         }
 
         public void EnableAttackHitbox()
         {
-            attackHitbox?.Activate();
-            swordTrailEffect?.SetActive(true);
+            EnableAttackHitbox(0);
         }
 
         public void DisableAttackHitbox()
         {
             attackHitbox?.Deactivate();
+        }
+
+        public void EnableSwordTrail()
+        {
+            if (_isAttacking)
+                swordTrailEffect?.SetActive(true);
+        }
+
+        public void DisableSwordTrail()
+        {
             swordTrailEffect?.SetActive(false);
+        }
+
+        public void OpenComboWindow()
+        {
+            if (_isAttacking)
+                _comboWindowOpen = true;
         }
 
         public void FinishAttackAnimation()
         {
-            DisableAttackHitbox();
+            if (!_isAttacking)
+                return;
 
-            if (_nextStepQueued && _comboStep < stepDurations.Length - 1)
-                StartStep(_comboStep + 1);
-            else
-                EndAttack(false);
+            _comboWindowOpen = false;
+            DisableAttackHitbox();
+            DisableSwordTrail();
+
+            int nextStep = _comboStep + 1;
+            if (_bufferedInput != AttackInputType.None
+                && nextStep < comboSteps.Length
+                && comboSteps[nextStep] != null
+                && comboSteps[nextStep].input == _bufferedInput)
+            {
+                AttackInputType nextInput = _bufferedInput;
+                _bufferedInput = AttackInputType.None;
+                StartStep(nextStep, nextInput);
+                return;
+            }
+
+            _isAttacking = false;
+            _comboWindowOpen = false;
+            _recoveryTimer = 0f;
+            PlayerAttackStep definition = comboSteps[_comboStep];
+            _recoveryDuration = Mathf.Max(0f, definition.recoveryDuration);
+            _isRecovering = _recoveryDuration > 0f;
+            _movement.UnlockWalking();
+            AttackFinished?.Invoke();
         }
 
         public void CancelAttack()
         {
-            if (!_isAttacking && _movement.CanWalk)
+            if (!_isAttacking && !_isRecovering && _movement.CanWalk)
                 return;
 
             EndAttack(true);
@@ -146,16 +216,18 @@ namespace DungeonCrawler.Core.Player
         private void EndAttack(bool cancelled)
         {
             _isAttacking = false;
+            _isRecovering = false;
+            _comboWindowOpen = false;
             _comboStep = 0;
-            _stepTimer = 0f;
-            _nextStepQueued = false;
+            _recoveryTimer = 0f;
+            _recoveryDuration = 0f;
+            _bufferedInput = AttackInputType.None;
             _movement.UnlockWalking();
-
             DisableAttackHitbox();
+            DisableSwordTrail();
+
             if (cancelled)
                 AttackCancelled?.Invoke();
-            else
-                AttackFinished?.Invoke();
         }
     }
 }

@@ -34,10 +34,11 @@ namespace DungeonCrawler.Core.Combat
             CurrentHealth = Mathf.Max(0f, CurrentHealth - damage);
             if (debugDamage)
                 Debug.Log($"[{name}] Took {damage} damage. Health {previousHealth} -> {CurrentHealth}.", this);
-            Damaged?.Invoke(damage);
 
             if (CurrentHealth <= 0f)
                 Die();
+
+            Damaged?.Invoke(damage);
         }
 
         protected virtual void Die()

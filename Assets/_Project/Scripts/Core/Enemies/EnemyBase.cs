@@ -44,8 +44,7 @@ namespace DungeonCrawler.Core.Enemies
         private Vector3 _knockbackVelocity;
         private float _knockbackTimer;
         private float _knockbackRecoveryTimer;
-        private bool _wasKnockedBack;
-        private bool _agentPositionWasUpdated;
+        private bool _agentWasStoppedBeforeKnockback;
         private bool _resumeNavigationNextFrame;
 
         protected virtual void Awake()
@@ -85,28 +84,21 @@ namespace DungeonCrawler.Core.Enemies
                     if (Agent.isOnNavMesh)
                     {
                         Vector3 displacement = _knockbackVelocity * Time.deltaTime;
-                        transform.position += displacement;
+                        Agent.Move(displacement);
                     }
-
-                    _wasKnockedBack = true;
                 }
 
                 _knockbackRecoveryTimer -= Time.deltaTime;
-                return;
-            }
-
-            if (_wasKnockedBack)
-            {
-                if (Agent.isOnNavMesh)
+                if (_knockbackRecoveryTimer <= 0f && _knockbackTimer <= 0f)
                 {
-                    Vector3 knockbackPosition = transform.position;
-                    Agent.Warp(knockbackPosition);
-                    Agent.updatePosition = _agentPositionWasUpdated;
-                    Agent.isStopped = false;
+                    Agent.velocity = Vector3.zero;
+                    Agent.isStopped = _agentWasStoppedBeforeKnockback;
+                    _resumeNavigationNextFrame = true;
                 }
-
-                _wasKnockedBack = false;
-                _resumeNavigationNextFrame = true;
+                else
+                {
+                    return;
+                }
             }
 
             if (_resumeNavigationNextFrame)
@@ -137,6 +129,10 @@ namespace DungeonCrawler.Core.Enemies
         public bool HasTarget()
         {
             if (target == null)
+                return false;
+
+            IDamageable targetDamageable = target.GetComponentInParent<IDamageable>();
+            if (targetDamageable != null && targetDamageable.IsDead)
                 return false;
 
             float range = _stateMachine.CurrentState is EnemyChaseState
@@ -268,9 +264,8 @@ namespace DungeonCrawler.Core.Enemies
             if (!Agent.enabled || !Agent.isOnNavMesh)
                 return;
 
-            StopMoving();
-            _agentPositionWasUpdated = Agent.updatePosition;
-            Agent.updatePosition = false;
+            _agentWasStoppedBeforeKnockback = Agent.isStopped;
+            Agent.ResetPath();
             Agent.isStopped = true;
             _knockbackVelocity = direction.normalized *
                 (force > 0f ? force : defaultKnockbackForce);

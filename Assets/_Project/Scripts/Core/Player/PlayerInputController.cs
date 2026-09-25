@@ -8,7 +8,7 @@ namespace DungeonCrawler.Core.Player
     {
         public event Action<Vector2> MoveRequested;
         public event Action DodgeRequested;
-        public event Action AttackRequested;
+        public event Action<AttackInputType> AttackRequested;
 
         private void OnMove(InputValue inputValue)
         {
@@ -17,7 +17,7 @@ namespace DungeonCrawler.Core.Player
 
         private void OnAttack(InputValue inputValue)
         {
-            AttackRequested?.Invoke();
+            AttackRequested?.Invoke(AttackInputType.Light);
         }
 
         private void OnDodge(InputValue inputValue)

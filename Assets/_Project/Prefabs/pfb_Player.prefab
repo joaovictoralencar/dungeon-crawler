@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: 8649472702001856293}
   - component: {fileID: 8408338721490805394}
   - component: {fileID: 1122334455667788990}
+  - component: {fileID: 8222333444555666777}
   m_Layer: 3
   m_Name: pfb_Player
   m_TagString: Untagged
@@ -40,6 +41,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8666765716358514519}
+  - {fileID: 7218537889742552542}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!143 &3140333429485443102
@@ -168,7 +170,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f06281b64aa2e64408ea548a41950d06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DungeonCrawler.Core.Player.PlayerInputController
-  playerInput: {fileID: 2988204288135929589}
 --- !u!114 &6056393502028611718
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -197,19 +198,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DungeonCrawler.Core.Player.PlayerAttack
   swordTrailEffect: {fileID: 302101679327095908}
-  attackHitbox: {fileID: 5067649376492712676}
+  attackHitbox: {fileID: 8222333444555666777}
   damage: 1
   damageMask:
     serializedVersion: 2
     m_Bits: 64
-  knockbackForce: 4
-  knockbackDuration: 0.15
-  debugCombat: 0
-  stepDurations:
-  - 0.5
-  - 0.6
-  - 1.2
-  comboWindowStart: 0.5
+  comboSteps:
+  - input: 1
+    damageMultiplier: 1
+    knockbackForce: 4
+    knockbackDuration: 0.15
+    recoveryDuration: 0.1
+  - input: 1
+    damageMultiplier: 1
+    knockbackForce: 3
+    knockbackDuration: 0.15
+    recoveryDuration: 0.1
+  - input: 1
+    damageMultiplier: 1
+    knockbackForce: 4
+    knockbackDuration: 0.15
+    recoveryDuration: 0.1
   CanAttack: 1
 --- !u!114 &8408338721490805394
 MonoBehaviour:
@@ -223,8 +232,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9dcd20260f45a6b4fb7619e73bad158b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DungeonCrawler.Core.Player.PlayerHealth
-  maxHealth: 10
-  debugDamage: 1
+  maxHealth: 1
+  debugDamage: 0
 --- !u!114 &1122334455667788990
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -235,8 +244,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a1b2c3d4e5f60718293a4b5c6d7e8f90, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DungeonCrawler.Core.Player.PlayerDeathHandler
+--- !u!114 &8222333444555666777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464479210501921818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9930d878e8f2ee444a7a4168cc83fad0, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::DungeonCrawler.Core.Combat.DamageHitbox
+  hitboxes:
+  - {fileID: 8485480872345177033}
+  - {fileID: 4392629139476785587}
 --- !u!1 &3907326895746699521
 GameObject:
   m_ObjectHideFlags: 0
@@ -2697,6 +2721,59 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
+--- !u!1 &4814038024633013218
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7218537889742552542}
+  - component: {fileID: 8485480872345177033}
+  m_Layer: 3
+  m_Name: AttackDamageHitBox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7218537889742552542
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4814038024633013218}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 1.215}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3254658244635027846}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &8485480872345177033
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4814038024633013218}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Size: {x: 1.5, y: 1.5, z: 2.5}
+  m_Center: {x: 0, y: 0, z: 0.5}
 --- !u!1 &5633226240744751197
 GameObject:
   m_ObjectHideFlags: 0
@@ -7674,7 +7751,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1605396079261211925
 Transform:
   m_ObjectHideFlags: 0
@@ -15223,7 +15300,120 @@ PrefabInstance:
       propertyPath: m_Center.y
       value: 1.02
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 4425862934572892676, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.746
+      objectReference: {fileID: 0}
+    - target: {fileID: 6767081488452256066, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: hitboxes.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6767081488452256066, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: 'hitboxes.Array.data[0]'
+      value: 
+      objectReference: {fileID: 4392629139476785587}
+    - target: {fileID: 6767081488452256066, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: 'hitboxes.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8485480872345177033}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: ShapeModule.radius.value
+      value: 0.0001
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: ShapeModule.radius.spread
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.scalar
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: TrailModule.widthOverTrail.scalar
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startLifetime.scalar
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.minScalar
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startLifetime.minScalar
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startLifetime.minMaxState
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.maxCurve.m_Curve.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.minCurve.m_Curve.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.maxCurve.m_Curve.Array.data[1].time
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.minCurve.m_Curve.Array.data[1].time
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.maxCurve.m_Curve.Array.data[0].value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.maxCurve.m_Curve.Array.data[1].value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.minCurve.m_Curve.Array.data[0].value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.minCurve.m_Curve.Array.data[1].value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.maxCurve.m_Curve.Array.data[0].inWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.maxCurve.m_Curve.Array.data[1].inWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.minCurve.m_Curve.Array.data[0].inWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.minCurve.m_Curve.Array.data[1].inWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.maxCurve.m_Curve.Array.data[0].outWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.maxCurve.m_Curve.Array.data[1].outWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.minCurve.m_Curve.Array.data[0].outWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 8909085807600445971, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+      propertyPath: InitialModule.startSpeed.minCurve.m_Curve.Array.data[1].outWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 6767081488452256066, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -15238,17 +15428,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
   m_PrefabInstance: {fileID: 1998024286765478822}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &5067649376492712676 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6767081488452256066, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
+--- !u!136 &4392629139476785587 stripped
+CapsuleCollider:
+  m_CorrespondingSourceObject: {fileID: 2832667878250600981, guid: c85b70d5b9e5dda4d91f7d8ad5b574db, type: 3}
   m_PrefabInstance: {fileID: 1998024286765478822}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9930d878e8f2ee444a7a4168cc83fad0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DungeonCrawler.Core.Combat.DamageHitbox
 --- !u!1001 &2767376660420532037
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15333,6 +15517,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 615f1274ec2993e43b09fe33374ec572, type: 2}
+    - target: {fileID: -4344461013512119991, guid: 3b727a3386c29f948bf89db4481e7615, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -3771971891951071861, guid: 3b727a3386c29f948bf89db4481e7615, type: 3}
       propertyPath: m_Layer
       value: 3
@@ -15479,8 +15667,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c7815752f3de394d8159b1b70cc2587, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DungeonCrawler.Core.Player.PlayerAttackAnimationEvents
---- !u!95 &7337188224592317964 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: -4344461013512119991, guid: 3b727a3386c29f948bf89db4481e7615, type: 3}
-  m_PrefabInstance: {fileID: 2767376660420532037}
-  m_PrefabAsset: {fileID: 0}

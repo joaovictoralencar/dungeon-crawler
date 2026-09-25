@@ -7,7 +7,7 @@ namespace DungeonCrawler.Core.Player
     {
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int AttackHash = Animator.StringToHash("Attack");
-        private static readonly int AttackIndexHash = Animator.StringToHash("AttackIndex");
+        private static readonly int ComboStepHash = Animator.StringToHash("ComboStep");
         private static readonly int DodgeHash = Animator.StringToHash("Dodge");
         private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
 
@@ -15,6 +15,7 @@ namespace DungeonCrawler.Core.Player
         private PlayerMovement _playerMovement;
         private PlayerAttack _playerAttack;
         private PlayerHealth _playerHealth;
+        private PlayerRootMotion _rootMotion;
         private bool _isDead;
         [SerializeField] private float speedDampTime = 0.1f;
         [SerializeField, Min(0f)] private float hitBlinkDuration = 0.5f;
@@ -31,6 +32,18 @@ namespace DungeonCrawler.Core.Player
             _playerAttack = GetComponent<PlayerAttack>();
             _playerHealth = GetComponent<PlayerHealth>();
             _renderers = GetComponentsInChildren<Renderer>(true);
+
+            if (_animator != null)
+            {
+                _rootMotion = _animator.GetComponent<PlayerRootMotion>();
+                if (_rootMotion == null)
+                    _rootMotion = _animator.gameObject.AddComponent<PlayerRootMotion>();
+
+                _rootMotion.Initialize(
+                    _animator,
+                    GetComponent<CharacterController>(),
+                    _playerAttack);
+            }
         }
 
         private void OnEnable()
@@ -72,7 +85,7 @@ namespace DungeonCrawler.Core.Player
         private void OnAttacked(int step)
         {
             // Set the index BEFORE the trigger so the transition sees the right value.
-            _animator.SetInteger(AttackIndexHash, step);
+            _animator.SetInteger(ComboStepHash, step);
             _animator.SetTrigger(AttackHash);
         }
 

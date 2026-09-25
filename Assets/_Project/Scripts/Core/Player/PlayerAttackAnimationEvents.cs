@@ -11,9 +11,14 @@ namespace DungeonCrawler.Core.Player
             _playerAttack = GetComponentInParent<PlayerAttack>();
         }
 
+        public void EnableAttackHitbox(int index)
+        {
+            _playerAttack?.EnableAttackHitbox(index);
+        }
+
         public void EnableAttackHitbox()
         {
-            _playerAttack?.EnableAttackHitbox();
+            _playerAttack?.EnableAttackHitbox(0);
         }
 
         public void DisableAttackHitbox()
@@ -21,9 +26,25 @@ namespace DungeonCrawler.Core.Player
             _playerAttack?.DisableAttackHitbox();
         }
 
+        public void EnableSwordTrail()
+        {
+            _playerAttack?.EnableSwordTrail();
+        }
+
+        public void DisableSwordTrail()
+        {
+            _playerAttack?.DisableSwordTrail();
+        }
+
         public void FinishAttackAnimation()
         {
             _playerAttack?.FinishAttackAnimation();
         }
+
+        public void OpenComboWindow()
+        {
+            _playerAttack?.OpenComboWindow();
+        }
+
     }
 }

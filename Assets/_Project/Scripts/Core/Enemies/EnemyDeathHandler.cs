@@ -5,6 +5,8 @@ namespace DungeonCrawler.Core.Enemies
 {
     public sealed class EnemyDeathHandler : MonoBehaviour
     {
+        private const float DeathDespawnDelay = 3f;
+
         private EnemyHealth _health;
         private EnemyBase _enemy;
         private Collider _collider;
@@ -33,6 +35,7 @@ namespace DungeonCrawler.Core.Enemies
             _enemy.enabled = false;
             _collider.enabled = false;
             _agent.enabled = false;
+            Destroy(gameObject, DeathDespawnDelay);
         }
     }
 }

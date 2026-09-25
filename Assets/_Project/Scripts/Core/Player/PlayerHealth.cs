@@ -9,8 +9,9 @@ namespace DungeonCrawler.Core.Player
 
         public bool IsInvulnerable { get; private set; }
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _movement = GetComponent<PlayerMovement>();
         }
 
