@@ -6,6 +6,9 @@ namespace DungeonCrawler.Core.Enemies
     {
         [SerializeField] private EnemyProjectile projectilePrefab;
         [SerializeField] private float projectileSpeed = 8f;
+        [SerializeField, Min(0f)] private float anticipation = 0.1f;
+
+        protected override float AttackAnticipationDuration => anticipation;
 
         protected override void PerformAttack()
         {

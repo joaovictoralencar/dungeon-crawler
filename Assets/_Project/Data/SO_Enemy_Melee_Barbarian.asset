@@ -15,17 +15,18 @@ MonoBehaviour:
   MovementSpeed: 5
   AngularSpeed: 720
   Acceleration: 20
-  StoppingDistance: 1.5
-  DetectionRange: 8
+  StoppingDistance: 1.75
+  DetectionRange: 20
   LoseTargetRange: 12
   RequireLineOfSight: 0
   ObstacleMask:
     serializedVersion: 2
     m_Bits: 0
   Patrol: 1
-  PatrolRadius: 5
-  PatrolWait: 1
-  AttackRange: 2
-  AttackInterval: 1.5
+  PatrolRadius: 8
+  PatrolWait: 2
+  AttackRange: 1.75
+  AttackAnticipation: 0.4
+  AttackInterval: 1.25
   AttackDuration: 0.6
   Damage: 1

@@ -6,12 +6,14 @@ namespace DungeonCrawler.Player
     public sealed class PlayerHealth : Health
     {
         private PlayerMovement _movement;
+        private PlayerAttack _attack;
 
         public bool IsInvulnerable { get; private set; }
 
         private void OnEnable()
         {
             _movement = GetComponent<PlayerMovement>();
+            _attack = GetComponent<PlayerAttack>();
             if (_movement != null)
             {
                 _movement.Dodged.AddListener(OnDodgeStarted);
@@ -37,6 +39,7 @@ namespace DungeonCrawler.Player
                 return;
             }
 
+            _attack?.CancelAttack();
             base.TakeDamage(damage);
         }
 

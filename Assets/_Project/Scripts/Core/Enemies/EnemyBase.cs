@@ -21,12 +21,15 @@ namespace DungeonCrawler.Core.Enemies
 
         protected NavMeshAgent Agent { get; private set; }
         protected EnemyConfig Config => config;
+        internal EnemyHealth Health { get; private set; }
         internal Transform Target => target;
         protected Transform AttackOrigin => attackOrigin != null ? attackOrigin : transform;
         internal bool IsAttacking { get; private set; }
         internal float PatrolRadius => config.PatrolRadius;
         internal float PatrolWait => config.PatrolWait;
-        protected bool CanAttack => Time.time >= _nextAttackTime && !IsAttacking;
+        internal float AttackAnticipation => AttackAnticipationDuration;
+        protected virtual float AttackAnticipationDuration => config.AttackAnticipation;
+        internal bool CanAttack => Time.time >= _nextAttackTime && !IsAttacking;
         protected float DistanceToTarget => target == null ? float.PositiveInfinity :
             Vector3.Distance(transform.position, target.position);
 
@@ -36,6 +39,7 @@ namespace DungeonCrawler.Core.Enemies
         private EnemyStateMachine _stateMachine;
         private float _attackTimer;
         private float _nextAttackTime;
+        private bool _attackHitExecuted;
         private Vector3 _knockbackVelocity;
         private float _knockbackTimer;
         private float _knockbackRecoveryTimer;
@@ -46,6 +50,7 @@ namespace DungeonCrawler.Core.Enemies
         protected virtual void Awake()
         {
             Agent = GetComponent<NavMeshAgent>();
+            Health = GetComponent<EnemyHealth>();
             _stateMachine = new EnemyStateMachine();
 
             if (config == null)
@@ -70,13 +75,6 @@ namespace DungeonCrawler.Core.Enemies
 
         protected virtual void Update()
         {
-            if (IsAttacking)
-            {
-                _attackTimer -= Time.deltaTime;
-                if (_attackTimer <= 0f)
-                    FinishAttack();
-            }
-
             if (_knockbackTimer > 0f || _knockbackRecoveryTimer > 0f)
             {
                 if (_knockbackTimer > 0f)
@@ -95,23 +93,27 @@ namespace DungeonCrawler.Core.Enemies
                 return;
             }
 
-            if (_wasKnockedBack && Agent.isOnNavMesh)
+            if (_wasKnockedBack)
             {
-                Vector3 knockbackPosition = transform.position;
-                Agent.Warp(knockbackPosition);
-                Agent.updatePosition = _agentPositionWasUpdated;
-                Agent.isStopped = false;
+                if (Agent.isOnNavMesh)
+                {
+                    Vector3 knockbackPosition = transform.position;
+                    Agent.Warp(knockbackPosition);
+                    Agent.updatePosition = _agentPositionWasUpdated;
+                    Agent.isStopped = false;
+                }
+
+                _wasKnockedBack = false;
+                _resumeNavigationNextFrame = true;
             }
-            _wasKnockedBack = false;
-            _resumeNavigationNextFrame = true;
 
-        if (_resumeNavigationNextFrame)
-        {
-            _resumeNavigationNextFrame = false;
-            return;
-        }
+            if (_resumeNavigationNextFrame)
+            {
+                _resumeNavigationNextFrame = false;
+                return;
+            }
 
-        _stateMachine.Tick();
+            _stateMachine.Tick();
         }
 
         protected virtual void OnDisable()
@@ -159,14 +161,20 @@ namespace DungeonCrawler.Core.Enemies
 
         public void MoveTo(Vector3 position)
         {
-            if (Agent.isOnNavMesh)
+            if (Agent.enabled && Agent.isOnNavMesh)
+            {
+                Agent.isStopped = false;
                 Agent.SetDestination(position);
+            }
         }
 
         public void StopMoving()
         {
-            if (Agent.isOnNavMesh)
+            if (Agent.enabled && Agent.isOnNavMesh)
+            {
                 Agent.ResetPath();
+                Agent.isStopped = true;
+            }
         }
 
         public bool HasReachedDestination()
@@ -197,20 +205,46 @@ namespace DungeonCrawler.Core.Enemies
                 return;
 
             IsAttacking = true;
-            _attackTimer = config.AttackDuration;
+            _attackHitExecuted = false;
             _nextAttackTime = Time.time + config.AttackInterval;
             StopMoving();
             AttackStarted?.Invoke();
-            PerformAttack();
         }
 
         protected abstract void PerformAttack();
 
-        protected virtual void FinishAttack()
+        public void ExecuteAttackAnimationEvent()
         {
+            if (!IsAttacking || _attackHitExecuted)
+                return;
+
+            _attackHitExecuted = true;
+            PerformAttack();
+        }
+
+        public void FinishAttackAnimation()
+        {
+            if (!IsAttacking)
+                return;
+
+            EndAttackHitbox();
             IsAttacking = false;
+            _attackHitExecuted = false;
             AttackFinished?.Invoke();
         }
+
+        public void CancelAttack()
+        {
+            if (!IsAttacking)
+                return;
+
+            EndAttackHitbox();
+            IsAttacking = false;
+            _attackHitExecuted = false;
+            AttackFinished?.Invoke();
+        }
+
+        protected virtual void EndAttackHitbox() { }
 
         internal float MovementSpeed01 => config.MovementSpeed <= 0f
             ? 0f
@@ -227,6 +261,9 @@ namespace DungeonCrawler.Core.Enemies
         {
             direction.y = 0f;
             if (direction.sqrMagnitude <= 0.001f)
+                return;
+
+            if (!Agent.enabled || !Agent.isOnNavMesh)
                 return;
 
             StopMoving();

@@ -2,6 +2,7 @@
   "dependencies": {
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.hellodev.analytics": "https://github.com/joaovictoralencar/hellodev-analytics.git#v0.3.3",
+    "com.hellodev.events": "https://github.com/joaovictoralencar/hellodev-events.git",
     "com.hellodev.utils": "https://github.com/joaovictoralencar/hellodev-utils.git",
     "com.unity.ai.navigation": "2.0.14",
     "com.unity.cinemachine": "6.6.0",

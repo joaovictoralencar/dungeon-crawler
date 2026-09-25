@@ -1,23 +1,28 @@
 using UnityEngine;
+using DungeonCrawler.Core.Combat;
 
 namespace DungeonCrawler.Core.Enemies
 {
     public sealed class MeleeEnemy : EnemyBase
     {
-        [SerializeField] private float hitRadius = 1.25f;
+        [SerializeField] private DamageHitbox attackHitbox;
         [SerializeField] private LayerMask damageMask;
 
         protected override void PerformAttack()
         {
-            Collider[] hits = Physics.OverlapSphere(AttackOrigin.position, hitRadius, damageMask);
-            foreach (Collider hit in hits)
-                ApplyDamage(hit.transform, Config.Damage);
+            attackHitbox?.Configure(transform, Config.Damage, damageMask);
+            attackHitbox?.Activate();
         }
 
-        private void OnDrawGizmosSelected()
+        protected override void OnDisable()
         {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(AttackOrigin.position, hitRadius);
+            attackHitbox?.Deactivate();
+            base.OnDisable();
+        }
+
+        protected override void EndAttackHitbox()
+        {
+            attackHitbox?.Deactivate();
         }
     }
 }

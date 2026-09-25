@@ -24,6 +24,7 @@ namespace DungeonCrawler.Core.Enemies
 
         [Header("Attack")]
         [Min(0f)] public float AttackRange = 2f;
+        [Min(0f)] public float AttackAnticipation = 0.2f;
         [Min(0.01f)] public float AttackInterval = 1.5f;
         [Min(0.01f)] public float AttackDuration = 0.6f;
         [Min(0f)] public float Damage = 1f;

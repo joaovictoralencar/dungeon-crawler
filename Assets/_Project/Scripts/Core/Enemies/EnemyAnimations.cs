@@ -10,17 +10,27 @@ namespace DungeonCrawler.Core.Enemies
         private static readonly int HitHash = Animator.StringToHash("Hit");
         private static readonly int DeathHash = Animator.StringToHash("Death");
         private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
+        private static readonly int HitShaderPropertyId = Shader.PropertyToID("_Hit");
 
         [SerializeField] private Animator animator;
         [SerializeField] private float speedDampTime = 0.1f;
+        [SerializeField, Min(0f)] private float hitFlashDuration = .5f;
 
         private EnemyBase _enemy;
         private EnemyHealth _health;
+        private Renderer[] _renderers;
+        private MaterialPropertyBlock[] _propertyBlocks;
+        private float _hitFlashTimer;
 
         private void Awake()
         {
             _enemy = GetComponent<EnemyBase>();
             _health = GetComponent<EnemyHealth>();
+            _renderers = GetComponentsInChildren<Renderer>(true);
+            _propertyBlocks = new MaterialPropertyBlock[_renderers.Length];
+
+            for (int i = 0; i < _propertyBlocks.Length; i++)
+                _propertyBlocks[i] = new MaterialPropertyBlock();
         }
 
         private void OnEnable()
@@ -55,6 +65,8 @@ namespace DungeonCrawler.Core.Enemies
 
         private void Update()
         {
+            UpdateHitFlash();
+
             if (animator == null || _enemy == null)
                 return;
 
@@ -78,8 +90,51 @@ namespace DungeonCrawler.Core.Enemies
 
         private void OnDamaged(float damage)
         {
-            if (animator != null && !_health.IsDead)
+            if (_health.IsDead)
+                return;
+
+            _enemy?.CancelAttack();
+            _hitFlashTimer = hitFlashDuration;
+            SetHitShaderValue(true);
+
+            if (animator != null)
+            {
+                animator.ResetTrigger(AttackHash);
                 animator.SetTrigger(HitHash);
+            }
+        }
+
+        private void UpdateHitFlash()
+        {
+            if (_hitFlashTimer <= 0f)
+                return;
+
+            _hitFlashTimer -= Time.deltaTime;
+            if (_hitFlashTimer <= 0f)
+                SetHitShaderValue(false);
+        }
+
+        private void SetHitShaderValue(bool value)
+        {
+            if (_renderers == null)
+                return;
+
+            for (int i = 0; i < _renderers.Length; i++)
+            {
+                Renderer renderer = _renderers[i];
+                if (renderer == null)
+                    continue;
+
+                MaterialPropertyBlock propertyBlock = _propertyBlocks[i];
+                renderer.GetPropertyBlock(propertyBlock);
+                propertyBlock.SetFloat(HitShaderPropertyId, value ? 1f : 0f);
+                renderer.SetPropertyBlock(propertyBlock);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            SetHitShaderValue(false);
         }
 
         private void OnDied()

@@ -74,9 +74,9 @@ namespace DungeonCrawler
             _dodgeTimer = 0f;
             
             dodgeEffect.SetActive(true);
-            dodgeEffect.transform.parent = null;
-            dodgeEffect.transform.position = transform.position + new Vector3(0, 0.5f, 1);
-            dodgeEffect.transform.forward = transform.forward;
+            // dodgeEffect.transform.parent = null;
+            // dodgeEffect.transform.position = transform.position + new Vector3(0, 0.5f, 1);
+            // dodgeEffect.transform.forward = transform.forward;
             Dodged.Invoke();
         }
 

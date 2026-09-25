@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.Events;
-using System.Collections.Generic;
 using DungeonCrawler.Core.Combat;
 
 namespace DungeonCrawler
@@ -14,8 +13,7 @@ namespace DungeonCrawler
         [SerializeField] private GameObject swordTrailEffect;
 
         [Header("Damage")]
-        [SerializeField] private Transform attackOrigin;
-        [SerializeField, Min(0f)] private float attackRadius = 1.5f;
+        [SerializeField] private DamageHitbox attackHitbox;
         [SerializeField, Min(0f)] private float damage = 1f;
         [SerializeField] private LayerMask damageMask;
         [SerializeField, Min(0f)] private float knockbackForce = 4f;
@@ -66,15 +64,7 @@ namespace DungeonCrawler
             if (!_isAttacking)
                 return;
 
-            _stepTimer -= Time.deltaTime;
-
-            if (_stepTimer > 0f)
-                return;
-
-            if (_nextStepQueued)
-                StartStep(_comboStep + 1); // chain straight into the next hit, walking stays locked
-            else
-                EndAttack();
+            _stepTimer += Time.deltaTime;
         }
 
         private void OnInputAttacked()
@@ -94,7 +84,7 @@ namespace DungeonCrawler
 
             // Already attacking: queue the next hit, but only if there is one and the window is open.
             bool hasNextStep = _comboStep < stepDurations.Length - 1;
-            float elapsed = _stepDuration - _stepTimer;
+            float elapsed = _stepTimer;
             bool windowOpen = elapsed >= _stepDuration * comboWindowStart;
 
             if (hasNextStep && windowOpen)
@@ -113,60 +103,42 @@ namespace DungeonCrawler
             _isAttacking = true;
             _comboStep = step;
             _stepDuration = Mathf.Max(0.01f, stepDurations[step]);
-            _stepTimer = _stepDuration;
+            _stepTimer = 0f;
             _nextStepQueued = false;
             playerMovement.CanWalk = false;
 
-            swordTrailEffect.gameObject.SetActive(true);
-            DealDamage();
+            attackHitbox?.Configure(transform, damage, damageMask, knockbackForce, knockbackDuration);
             Attacked.Invoke(step);
         }
 
-        private void DealDamage()
+        public void EnableAttackHitbox()
         {
-            Vector3 origin = attackOrigin != null ? attackOrigin.position : transform.position;
-            int effectiveDamageMask = damageMask.value == 0 ? Physics.AllLayers : damageMask.value;
-            Collider[] hits = Physics.OverlapSphere(origin, attackRadius, effectiveDamageMask);
-            HashSet<IDamageable> damagedTargets = new();
-
-            if (debugCombat)
-            {
-                if (damageMask.value == 0)
-                    Debug.LogWarning($"[{name}] Damage Mask is not configured; using all layers.", this);
-
-                Debug.Log($"[{name}] Attack hit scan: Origin={origin}, Radius={attackRadius}, " +
-                          $"Mask={effectiveDamageMask}, Colliders={hits.Length}.", this);
-            }
-
-            foreach (Collider hit in hits)
-            {
-                if (hit.transform.IsChildOf(transform))
-                    continue;
-
-                IDamageable damageable = hit.GetComponentInParent<IDamageable>();
-                if (damageable == null || !damagedTargets.Add(damageable))
-                {
-                    if (debugCombat)
-                        Debug.Log($"[{name}] Hit {hit.name}, but no new IDamageable was found.", hit);
-                    continue;
-                }
-
-                damageable.TakeDamage(damage);
-
-                IKnockbackable knockbackable = hit.GetComponentInParent<IKnockbackable>();
-                if (knockbackable != null)
-                {
-                    Vector3 direction = hit.transform.position - transform.position;
-                    knockbackable.ApplyKnockback(direction, knockbackForce, knockbackDuration);
-                }
-            }
+            attackHitbox?.Activate();
+            swordTrailEffect?.SetActive(true);
         }
 
-        private void OnDrawGizmosSelected()
+        public void DisableAttackHitbox()
         {
-            Gizmos.color = Color.yellow;
-            Vector3 origin = attackOrigin != null ? attackOrigin.position : transform.position;
-            Gizmos.DrawWireSphere(origin, attackRadius);
+            attackHitbox?.Deactivate();
+            swordTrailEffect?.SetActive(false);
+        }
+
+        public void FinishAttackAnimation()
+        {
+            DisableAttackHitbox();
+
+            if (_nextStepQueued && _comboStep < stepDurations.Length - 1)
+                StartStep(_comboStep + 1);
+            else
+                EndAttack();
+        }
+
+        public void CancelAttack()
+        {
+            if (!_isAttacking && playerMovement.CanWalk)
+                return;
+
+            EndAttack();
         }
 
         private void EndAttack()
@@ -177,7 +149,7 @@ namespace DungeonCrawler
             _nextStepQueued = false;
             playerMovement.CanWalk = true;
 
-            swordTrailEffect.gameObject.SetActive(false);
+            DisableAttackHitbox();
             AttackEnded.Invoke();
         }
     }

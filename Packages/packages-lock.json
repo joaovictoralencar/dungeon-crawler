@@ -19,6 +19,15 @@
       },
       "hash": "62bcf715e44d583c7acfd5f048d10c868db18580"
     },
+    "com.hellodev.events": {
+      "version": "https://github.com/joaovictoralencar/hellodev-events.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.hellodev.utils": "1.1.1"
+      },
+      "hash": "32221611707f2fef6c025086c24e3e3d484218a2"
+    },
     "com.hellodev.utils": {
       "version": "https://github.com/joaovictoralencar/hellodev-utils.git",
       "depth": 0,
