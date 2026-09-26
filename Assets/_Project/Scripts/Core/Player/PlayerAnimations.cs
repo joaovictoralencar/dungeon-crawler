@@ -23,6 +23,7 @@ namespace DungeonCrawler.Core.Player
 
         private float _targetSpeed;
         private Renderer[] _renderers;
+        private bool[] _originalRendererStates;
         private Coroutine _hitBlinkRoutine;
 
         private void Awake()
@@ -32,6 +33,9 @@ namespace DungeonCrawler.Core.Player
             _playerAttack = GetComponent<PlayerAttack>();
             _playerHealth = GetComponent<PlayerHealth>();
             _renderers = GetComponentsInChildren<Renderer>(true);
+            _originalRendererStates = new bool[_renderers.Length];
+            for (int i = 0; i < _renderers.Length; i++)
+                _originalRendererStates[i] = _renderers[i] != null && _renderers[i].enabled;
 
             if (_animator != null)
             {
@@ -63,12 +67,7 @@ namespace DungeonCrawler.Core.Player
             _playerHealth.Damaged -= OnDamaged;
             _playerHealth.Died -= OnDied;
 
-            if (_hitBlinkRoutine != null)
-            {
-                StopCoroutine(_hitBlinkRoutine);
-                _hitBlinkRoutine = null;
-                SetRenderersEnabled(true);
-            }
+            StopHitBlinkAndRestore();
         }
 
         private void Update()
@@ -97,6 +96,7 @@ namespace DungeonCrawler.Core.Player
 
         private void OnDied()
         {
+            StopHitBlinkAndRestore();
             _isDead = true;
             _animator.SetBool(IsDeadHash, true);
         }
@@ -109,46 +109,63 @@ namespace DungeonCrawler.Core.Player
             _animator.ResetTrigger(AttackHash);
 
             if (_hitBlinkRoutine != null)
+            {
                 StopCoroutine(_hitBlinkRoutine);
+                _hitBlinkRoutine = null;
+            }
 
             _hitBlinkRoutine = StartCoroutine(BlinkOnHit());
         }
 
         private IEnumerator BlinkOnHit()
         {
-            bool[] originalStates = new bool[_renderers.Length];
-            for (int i = 0; i < _renderers.Length; i++)
-                originalStates[i] = _renderers[i] != null && _renderers[i].enabled;
-
             float elapsed = 0f;
             bool visible = true;
 
             while (elapsed < hitBlinkDuration)
             {
                 visible = !visible;
-                SetRenderersEnabled(visible);
+                SetRenderersVisible(visible);
                 yield return new WaitForSeconds(hitBlinkInterval);
                 elapsed += hitBlinkInterval;
             }
 
-            for (int i = 0; i < _renderers.Length; i++)
-            {
-                if (_renderers[i] != null)
-                    _renderers[i].enabled = originalStates[i];
-            }
-
+            RestoreRendererStates();
             _hitBlinkRoutine = null;
         }
 
-        private void SetRenderersEnabled(bool enabled)
+        private void SetRenderersVisible(bool visible)
         {
-            if (_renderers == null)
+            if (_renderers == null || _originalRendererStates == null)
                 return;
 
-            foreach (Renderer renderer in _renderers)
+            for (int i = 0; i < _renderers.Length; i++)
             {
-                if (renderer != null)
-                    renderer.enabled = enabled;
+                if (_renderers[i] != null)
+                    _renderers[i].enabled = _originalRendererStates[i] && visible;
+            }
+        }
+
+        private void StopHitBlinkAndRestore()
+        {
+            if (_hitBlinkRoutine != null)
+            {
+                StopCoroutine(_hitBlinkRoutine);
+                _hitBlinkRoutine = null;
+            }
+
+            RestoreRendererStates();
+        }
+
+        private void RestoreRendererStates()
+        {
+            if (_renderers == null || _originalRendererStates == null)
+                return;
+
+            for (int i = 0; i < _renderers.Length; i++)
+            {
+                if (_renderers[i] != null)
+                    _renderers[i].enabled = _originalRendererStates[i];
             }
         }
     }
